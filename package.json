@@ -1,0 +1,32 @@
+{
+  "name": "sunday",
+  "version": "1.0.0",
+  "description": "rest api",
+  "main": "server.js",
+  "scripts": {
+    "test": "test",
+    "dev": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pandareen/sunday.git"
+  },
+  "keywords": [
+    "sunday"
+  ],
+  "author": "pandareen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pandareen/sunday/issues"
+  },
+  "homepage": "https://github.com/pandareen/sunday#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "mongodb": "^2.2.33"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.4",
+    "release-it": "^7.6.1"
+  }
+}

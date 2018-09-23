@@ -26,6 +26,7 @@ module.exports = function (app, db) {
         const note = { "distance": distance, "originCoord": originCoord, "destCoord": destCoord, "status": "UNASSIGN" }
         db.collection('notes').insert(note, (err, result) => {
           if (err) {
+            res.statusCode = 500;
             res.send({ 'error': 'An error has occurred' });
           } else {
             console.log(result)
@@ -34,15 +35,57 @@ module.exports = function (app, db) {
               "distance": result.ops[0].distance,
               "status": result.ops[0].status
             }
+            res.statusCode = 200;
             res.send(responseString);
           }
         });
       }).catch((error) => {
         console.log(error)
+        res.statusCode = 500;
         res.send({ 'error': 'An error has occurred' })
 
       });
 
 
   });
+
+  app.put('/takeorder/:id', (req, res) => {
+    const id = req.params.id;
+    const status = req.body.status;
+    if (status != "taken") {
+      res.statusCode = 500;
+      res.send({ 'error': 'Status is invalid' })
+      return
+    }
+    //console.log(id)
+    const details = { '_id': new ObjectID(id), 'status': 'UNASSIGN' };
+    const updateSuccess = db.collection('notes').findAndModify(
+      details, // query
+      [['_id', 'asc']],  // sort order
+      { $set: { status: "taken" } }, // replacement, replaces only the field "hi"
+      {w:1}, // options
+      function (err, object) {
+        if (err) {
+          res.send({ 'error': 'An error occured while taking order.' })
+          return;
+        }
+        else {
+          if(object.lastErrorObject.updatedExisting == true)
+          {
+            res.statusCode = 200;
+            res.send({"status": "SUCCESS"})
+          }
+          else
+          {
+            res.statusCode = 409;
+            res.send({"error": "ORDER_ALREADY_BEEN_TAKEN"})
+          }
+          //console.log(object)
+        }
+      });
+
+
+  });
+
+
 };

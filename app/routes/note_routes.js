@@ -29,7 +29,7 @@ module.exports = function (app, db) {
             res.statusCode = 500;
             res.send({ 'error': 'An error has occurred' });
           } else {
-            console.log(result)
+            //console.log(result)
             const responseString = {
               "id": result.ops[0]._id,
               "distance": result.ops[0].distance,
@@ -40,7 +40,7 @@ module.exports = function (app, db) {
           }
         });
       }).catch((error) => {
-        console.log(error)
+        //console.log(error)
         res.statusCode = 500;
         res.send({ 'error': 'An error has occurred' })
 
@@ -80,7 +80,7 @@ module.exports = function (app, db) {
             res.statusCode = 409;
             res.send({"error": "ORDER_ALREADY_BEEN_TAKEN"})
           }
-          //console.log(object)
+      //console.log(object)   
         }
       });
 

@@ -32,8 +32,7 @@ module.exports = function (app, db) {
         order.save(function (err, result) {
           if (err) {
             res.statusCode = 500;
-            res.send({ 'error': 'An error has occurred' });
-            return
+            return res.send({ 'error': 'An error has occurred' });
           }
           const responseString = {
             "id": result._id,
@@ -41,13 +40,11 @@ module.exports = function (app, db) {
             "status": result.status
           }
           res.statusCode = 200;
-          res.send(responseString);
-          return;
+          return res.send(responseString);
         });
       }, error => {
         res.statusCode = 500;
-        res.send({ 'error': 'An error has occurred' })
-        return
+        return res.send({ 'error': 'An error has occurred' })
       });
   });
 
@@ -56,33 +53,29 @@ module.exports = function (app, db) {
     const status = req.body.status;
     if (status != "taken") {
       res.statusCode = 500;
-      res.send({ 'error': 'Status is invalid' })
-      return
+      return res.send({ 'error': 'Status is invalid' })
     }
-    //console.log(id)
-    const details = { '_id': new ObjectID(id), 'status': 'UNASSIGN' };
-    const updateSuccess = db.collection('notes').findAndModify(
-      details, // query
-      [['_id', 'asc']],  // sort order
-      { $set: { status: "taken" } }, // replacement, replaces only the field "hi"
-      { w: 1 }, // options
-      function (err, object) {
-        if (err) {
-          res.send({ 'error': 'An error occured while taking order.' })
-          return;
-        }
-        else {
-          if (object.lastErrorObject.updatedExisting == true) {
-            res.statusCode = 200;
-            res.send({ "status": "SUCCESS" })
+
+    Order.findById(id, (err, order) => {
+      if (err) {
+        return res.send({ 'error': 'An error occured while taking order.' })
+      }
+
+      if (order.status == "UNASSIGN") {
+        Order.findByIdAndUpdate(id, { status: "SUCCESS" }, { new: true }, (err, updatedOrder) => {
+          if (err) {
+            return res.send({ 'error': 'An error occured while taking order.' })
           }
-          else {
-            res.statusCode = 409;
-            res.send({ "error": "ORDER_ALREADY_BEEN_TAKEN" })
-          }
-          //console.log(object)   
-        }
-      });
+          res.statusCode = 200;
+          return res.send({ 'status': updatedOrder.status })
+        })
+      }
+      else {
+        res.statusCode = 409;
+        return res.send({ "error": "ORDER_ALREADY_BEEN_TAKEN" })
+      }
+    });
+
   });
 
 
@@ -95,7 +88,7 @@ module.exports = function (app, db) {
       .limit(perPage)
       .exec(function (err, orders) {
         if (err) {
-          res.send(err);
+          return res.send(err);
         }
         var resObjs = [];
         orders.forEach(function (value) {
@@ -105,8 +98,7 @@ module.exports = function (app, db) {
             "status": value.status
           })
         });
-        res.send(resObjs)
-        return;
+        return res.send(resObjs)
       })
   });
 

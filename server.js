@@ -3,6 +3,11 @@ const MongoClient = require('mongodb').MongoClient;
 const bodyParser = require('body-parser');
 const db = require('./config/db');
 
+var mongoose = require('mongoose')
+mongoose.connect(db.url, (err, database) => {
+
+});
+
 
 const app = express();
 

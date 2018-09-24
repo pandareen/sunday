@@ -1,11 +1,17 @@
 var ObjectID = require('mongodb').ObjectID;
+var mongoose = require('mongoose')
+const db = require('../../config/db');
+mongoose.connect(db.url, (err, database) => {
+
+});
+var Order = require('../../models/order')
 
 const mbxDirections = require('@mapbox/mapbox-sdk/services/directions');
 const directionsClient = mbxDirections({ accessToken: 'pk.eyJ1Ijoic2FuZGVzaHlhcHVyYW0iLCJhIjoiY2ptZGw2bXFxNjJxazNxbGkxNmFzNWxlaSJ9.Xr1eZTKMDJnlayXvr20Q8w' });
 
 module.exports = function (app, db) {
 
-  app.post('/order', (req, res) => {
+  app.post('/order1', (req, res) => {
 
     directionsClient
       .getDirections({
@@ -29,7 +35,7 @@ module.exports = function (app, db) {
             res.statusCode = 500;
             res.send({ 'error': 'An error has occurred' });
           } else {
-            //console.log(result)
+            console.log(result)
             const responseString = {
               "id": result.ops[0]._id,
               "distance": result.ops[0].distance,
@@ -40,12 +46,55 @@ module.exports = function (app, db) {
           }
         });
       }).catch((error) => {
-        //console.log(error)
+        console.log(error)
         res.statusCode = 500;
         res.send({ 'error': 'An error has occurred' })
 
       });
 
+
+  });
+
+
+  app.post('/order', function (req, res, next) {
+    var order = new Order()
+    directionsClient
+      .getDirections({
+        waypoints: [
+          {
+            coordinates: req.body.origin.map(Number)
+          },
+          {
+            coordinates: req.body.destination.map(Number)
+          }
+        ]
+      })
+      .send()
+      .then(response => {
+        order.distance = JSON.parse(response.rawBody).routes[0].distance;
+        order.originCoord = req.body.origin.map(Number);
+        order.destCoord = req.body.destination.map(Number);
+        order.status = "UNASSIGN";
+        order.save(function (err) {
+          console.log("Start of save")
+          if (err) {
+            console.log(err)
+            res.statusCode = 500;
+            res.send({ 'error': 'An error has occurred' });
+            return
+          }
+          res.statusCode = 200;
+          res.send("Successsss");
+          return;
+        });
+        console.log(order)
+      }).catch((error) => {
+        console.log(error)
+        res.statusCode = 500;
+        res.send({ 'error': 'An error has occurred' })
+        return
+      });
+    console.log("here");
 
   });
 
@@ -63,29 +112,28 @@ module.exports = function (app, db) {
       details, // query
       [['_id', 'asc']],  // sort order
       { $set: { status: "taken" } }, // replacement, replaces only the field "hi"
-      {w:1}, // options
+      { w: 1 }, // options
       function (err, object) {
         if (err) {
           res.send({ 'error': 'An error occured while taking order.' })
           return;
         }
         else {
-          if(object.lastErrorObject.updatedExisting == true)
-          {
+          if (object.lastErrorObject.updatedExisting == true) {
             res.statusCode = 200;
-            res.send({"status": "SUCCESS"})
+            res.send({ "status": "SUCCESS" })
           }
-          else
-          {
+          else {
             res.statusCode = 409;
-            res.send({"error": "ORDER_ALREADY_BEEN_TAKEN"})
+            res.send({ "error": "ORDER_ALREADY_BEEN_TAKEN" })
           }
-      //console.log(object)   
+          //console.log(object)   
         }
       });
-
-
   });
+
+
+
 
 
 };

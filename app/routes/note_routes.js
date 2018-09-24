@@ -10,47 +10,6 @@ const directionsClient = mbxDirections({ accessToken: 'pk.eyJ1Ijoic2FuZGVzaHlhcH
 
 module.exports = function (app, db) {
 
-  app.post('/order1', (req, res) => {
-    directionsClient
-      .getDirections({
-        waypoints: [
-          {
-            coordinates: req.body.origin.map(Number)
-          },
-          {
-            coordinates: req.body.destination.map(Number)
-          }
-        ]
-      })
-      .send()
-      .then(response => {
-        const distance = JSON.parse(response.rawBody).routes[0].distance;
-        const originCoord = req.body.origin.map(Number);
-        const destCoord = req.body.destination.map(Number);
-        const note = { "distance": distance, "originCoord": originCoord, "destCoord": destCoord, "status": "UNASSIGN" }
-        db.collection('notes').insert(note, (err, result) => {
-          if (err) {
-            res.statusCode = 500;
-            res.send({ 'error': 'An error has occurred' });
-          } else {
-            console.log(result)
-            const responseString = {
-              "id": result.ops[0]._id,
-              "distance": result.ops[0].distance,
-              "status": result.ops[0].status
-            }
-            res.statusCode = 200;
-            res.send(responseString);
-          }
-        });
-      }).catch((error) => {
-        console.log(error)
-        res.statusCode = 500;
-        res.send({ 'error': 'An error has occurred' })
-      });
-  });
-
-
   app.post('/order', function (req, res, next) {
     var order = new Order()
     directionsClient
@@ -85,7 +44,7 @@ module.exports = function (app, db) {
           res.send(responseString);
           return;
         });
-      }).catch((error) => {
+      }, error => {
         res.statusCode = 500;
         res.send({ 'error': 'An error has occurred' })
         return

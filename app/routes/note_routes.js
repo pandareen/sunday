@@ -2,7 +2,6 @@ var ObjectID = require('mongodb').ObjectID;
 var mongoose = require('mongoose')
 const db = require('../../config/db');
 mongoose.connect(db.url, (err, database) => {
-
 });
 var Order = require('../../models/order')
 
@@ -12,7 +11,6 @@ const directionsClient = mbxDirections({ accessToken: 'pk.eyJ1Ijoic2FuZGVzaHlhcH
 module.exports = function (app, db) {
 
   app.post('/order1', (req, res) => {
-
     directionsClient
       .getDirections({
         waypoints: [
@@ -49,10 +47,7 @@ module.exports = function (app, db) {
         console.log(error)
         res.statusCode = 500;
         res.send({ 'error': 'An error has occurred' })
-
       });
-
-
   });
 
 
@@ -75,27 +70,26 @@ module.exports = function (app, db) {
         order.originCoord = req.body.origin.map(Number);
         order.destCoord = req.body.destination.map(Number);
         order.status = "UNASSIGN";
-        order.save(function (err) {
-          console.log("Start of save")
+        order.save(function (err, result) {
           if (err) {
-            console.log(err)
             res.statusCode = 500;
             res.send({ 'error': 'An error has occurred' });
             return
           }
+          const responseString = {
+            "id": result._id,
+            "distance": result.distance,
+            "status": result.status
+          }
           res.statusCode = 200;
-          res.send("Successsss");
+          res.send(responseString);
           return;
         });
-        console.log(order)
       }).catch((error) => {
-        console.log(error)
         res.statusCode = 500;
         res.send({ 'error': 'An error has occurred' })
         return
       });
-    console.log("here");
-
   });
 
   app.put('/takeorder/:id', (req, res) => {
@@ -133,7 +127,29 @@ module.exports = function (app, db) {
   });
 
 
-
+  app.get('/orders', function (req, res, next) {
+    var perPage = Number(req.query.limit) || 10;
+    var page = Number(req.query.page) || 1;
+    Order
+      .find({})
+      .skip((perPage * page) - perPage)
+      .limit(perPage)
+      .exec(function (err, orders) {
+        if (err) {
+          res.send(err);
+        }
+        var resObjs = [];
+        orders.forEach(function (value) {
+          resObjs.push({
+            "id": value._id,
+            "distance": value.distance,
+            "status": value.status
+          })
+        });
+        res.send(resObjs)
+        return;
+      })
+  });
 
 
 };

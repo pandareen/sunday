@@ -1,14 +1,9 @@
-var ObjectID = require('mongodb').ObjectID;
-var mongoose = require('mongoose')
-const db = require('../../config/db');
-mongoose.connect(db.url, (err, database) => {
-});
 var Order = require('../../models/order')
 
 const mbxDirections = require('@mapbox/mapbox-sdk/services/directions');
 const directionsClient = mbxDirections({ accessToken: 'pk.eyJ1Ijoic2FuZGVzaHlhcHVyYW0iLCJhIjoiY2ptZGw2bXFxNjJxazNxbGkxNmFzNWxlaSJ9.Xr1eZTKMDJnlayXvr20Q8w' });
 
-module.exports = function (app, db) {
+module.exports = function (app, mg) {
 
   app.post('/order', function (req, res, next) {
     var order = new Order()
@@ -48,7 +43,7 @@ module.exports = function (app, db) {
       });
   });
 
-  app.put('/takeorder/:id', (req, res) => {
+  app.put('/takeorder/:id', (req, res, next) => {
     const id = req.params.id;
     const status = req.body.status;
     if (status != "taken") {

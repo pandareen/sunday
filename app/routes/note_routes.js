@@ -1,11 +1,14 @@
 var Order = require('../../models/order')
-
+const logger = require('../../config/winston-logger')
+const namespace = require('node-request-context').getNamespace('myapp.mynamespace');
+console.log(' basboa '+ namespace)
 const mbxDirections = require('@mapbox/mapbox-sdk/services/directions');
 const directionsClient = mbxDirections({ accessToken: 'pk.eyJ1Ijoic2FuZGVzaHlhcHVyYW0iLCJhIjoiY2ptZGw2bXFxNjJxazNxbGkxNmFzNWxlaSJ9.Xr1eZTKMDJnlayXvr20Q8w' });
 
 module.exports = function (app, mg) {
 
   app.post('/order', function (req, res, next) {
+    logger.info(namespace.get('tid'))
     var order = new Order()
     directionsClient
       .getDirections({
